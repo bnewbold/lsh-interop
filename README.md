@@ -1,5 +1,5 @@
 
-# Interoperability of Similarity Hashing Schemes
+# Interoperability of Locality-Sensitive Hashing Schemes
 
 This (work-in-progress) document proposes specific document fingerprinting
 algorithms, configuration, and practices for use in identifying and
@@ -12,10 +12,10 @@ techniques is to enhance collaboration in efforts like web archiving,
 automated document identification, verifying repository contents, and
 near-duplicate-detection across distributed datasets.
 
-These techniques are variously refered to as "near duplicate detection" and
-"similarity hashing". The major advances in this area historically came from
-commercial search engine development and the field of information retrieval in
-academia.
+These techniques are variously refered to as "near duplicate detection",
+"locality-sensitive hashing", and "similarity hashing". The major advances in
+this area historically came from commercial search engine development and the
+field of information retrieval in academia.
 
 Contributions, corrections, and feedback to this document welcomed! You can use
 github features (issues and pull-requests) or email contributors directly.
@@ -29,8 +29,8 @@ but any small difference between files results in a completely different hash.
 The hash is of a fixed length of some 40 to 64 bytes (very small compared to
 document size).  This is useful for fast equality checking and verify the
 integrity of files, but is too brittle for use identification across media.
-Similarity measures (such as edit distance or cosine similarity) often take a
-full document (or an extract set of tokens from the document) and give a
+Similarity measures (such as cosine similarity or Hamming distance) often take
+a full document (or an extract set of tokens from the document) and give a
 fractional measure of similarity. They have the property of being relatively
 inefficient for lookups in large corpuses because each document must be
 compared one-to-one.
@@ -45,8 +45,9 @@ corpuses.
 
 Some notable algorithms to consider are:
 
-- `simhash`
-- `minhash`
+- simhash (aka, Charikar hashing)
+- minhash
+- weighed minhash
 
 However, the papers describing these algorithms have a few parameters (eg, hash
 bit length, token hash algorithm), and leave several important steps up to the
@@ -117,13 +118,75 @@ Proposed algorithm and parameters:
 - TODO: 64x signed 8-bit buckets during calculation
 - 64bit length final form
 - base32 (non-capitalization-sensitive) when serialized as a string
+- TODO: little-endian? does base32 specify this?
 
 Recommended lookup parameters:
 
 - TODO: how many columns in rotation?
-- TODO: N-bit window
-- TODO: cosine similarity measure? edit distance?
+- k=3 (number of bits to filter on)
+- TODO: Hamming distance
 - TODO: 0.XYZ considered a loose match, 0.XYZ considered a close match
+
+## Existing Libraries and Implementations
+
+These don't necessarily implement the schemes above, but they do implement the
+basic algorithms.
+
+- [seomoz/simhash-cpp](https://github.com/seomoz/simhash-cpp) (C++): simhash,
+  used in production for web de-dupe
+- [simhash](https://github.com/JanX2/simhash) (C++): Google's simhash
+  implementation (old?)
+- [datasketch](https://ekzhu.github.io/datasketch/) (Python): minhash, Jaccard
+  similarity, minhash-based indexing with Jaccard threshold, Top-K, or
+  containment threshold.
+- [sean-public/python-hashes](https://github.com/sean-public/python-hashes)
+  (Python)
+- [sing1ee/simhash-java](https://github.com/sing1ee/simhash-java) (Java)
+- [vkandy/simhash-js](https://github.com/vkandy/simhash-js) (Javascript)
+
+Other resources:
+
+- [seomoz/simhash-db-py](https://github.com/seomoz/simhash-db-py)
+- [codelibs/elasticsearch-minhash](https://github.com/codelibs/elasticsearch-minhash):
+  plugin for a general-purpose search engine
+- [bbalet/stopwords](https://github.com/bbalet/stopwords) (Golang): for a
+  dozen+ languages. also does HTML stripping
 
 ## References
 
+"Near-Duplicate Detection", Lecoc. 2015.
+[https://moz.com/devblog/near-duplicate-detection/]()
+
+> Moz blogpost. Good place to start.
+
+"Charikar: Similarity Estimation Techniques from Rounding Algorithms", in
+Proceedings of the thiry-fourth annual ACM symposium on Theory of computing,
+ACM Press, 2002"
+
+"Manku, Jain, Sarma: Detecting Near-Duplicates for Web Crawling". in
+Proceedings of the 16th international conference on World Wide Web, ACM Press,
+2007
+
+> Google paper
+
+"Identifying and Filtering Near-Duplicate Documents", Broder. 2000.
+
+> AltaVista paper
+
+"Near Duplicate Detection in an Academic Digital Library", Williams, Giles.
+2013.
+[http://www.personal.psu.edu/kiw5209/papers/2013/williams_doceng2013.pdf]()
+
+> CiteseerX paper
+
+"Probabilistic Near-Duplicate Detection Using Simhash", Sood and Loguinov.
+2011.
+
+"In Defense of MinHash over SimHash"
+[http://proceedings.mlr.press/v33/shrivastava14.pdf]()
+
+"Finding Similar Files in a Large File System", Manber. 1993.
+[http://webglimpse.net/pubs/TR93-33.pdf]()
+
+For a bibliography of older work, see
+[https://github.com/JanX2/simhash/blob/master/paper/simHashBiblio.bib]().
