@@ -101,13 +101,16 @@ Proposed extraction and tokenization:
   table contents, quoted text. Do include reference lists, but do not include
   tokens from URLs or identifiers.
 - UTF-8 encoded tokens
-- fallback to unicode word separators for tokenization (TODO: ???)
-- no zero-width or non-printing unicode modifiers
-- tokens should include only "alphanumeric" characters (TODO: as defined by
-  unicode plane?)
+- fallback to unicode word-character boundaries for tokenization if a
+  language-specific tokenizer is not available
+- tokens should include only "word characters", as commonly included in
+  unicode-aware regex libraries. Specifically including the cateogires: `Ll Lu
+  Lt Lo Lm Mn Nd Pc`. They must include at least one letter/"Alphabetic"
+  character.
+- specifically, no zero-width or non-printing unicode modifiers
 - numbers (unless part of an alphanumeric string, eg an acronym) should not be
   included
-- tokens (words) must be 3 characters minimum
+- TODO: instead, strip all numeric characters?
 - OPTIONALLY, a language-specific stop-list appropriate for search-engine
   indexing may be used.
 
