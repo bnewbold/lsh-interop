@@ -48,6 +48,7 @@ Some notable algorithms to consider are:
 - simhash (aka, Charikar hashing)
 - minhash
 - weighed minhash
+- shingle methods (with dozens of feature hashes per document)
 
 However, the papers describing these algorithms have a few parameters (eg, hash
 bit length, token hash algorithm), and leave several important steps up to the
@@ -110,34 +111,39 @@ Proposed extraction and tokenization:
 - specifically, no zero-width or non-printing unicode modifiers
 - numbers (unless part of an alphanumeric string, eg an acronym) should not be
   included
-- TODO: instead, strip all numeric characters?
+- TODO: instead, just strip all numeric characters?
 - OPTIONALLY, a language-specific stop-list appropriate for search-engine
   indexing may be used.
 
 Proposed algorithm and parameters:
 
 - `simhash` algorithm
-- TODO: fast token hashing algorithm?
-- TODO: 64x signed 8-bit buckets during calculation
-- 64bit length final form
-- base32 (non-capitalization-sensitive) when serialized as a string
-- TODO: little-endian? does base32 specify this?
+- 64-bit `jenkins` hash algorithm for tokens
+- 64x signed buckets (of 64-bit depth) during calculation
+- 64-bit final form
+- base32 when serialized as a string (non-capitalization-sensitive)
 
-Recommended lookup parameters:
+Note: endianness does not need to be specified, as the 64bit feature hashes are
+defined as 8-byte octet strings, not 64-bit integers.
 
-- TODO: how many columns in rotation?
-- k=3 (number of bits to filter on)
-- TODO: Hamming distance
-- TODO: 0.XYZ considered a loose match, 0.XYZ considered a close match
+Recommended default lookup parameters (these are all optional):
+
+- k=3 ("distance", or number of differing bits to allow when filtering)
+- Hamming distance as a similarity metric (for speed)
+- 0.90 considered a loose match, 0.98 considered a close match
+- create 16 tables of 28-bits for lookup, by first chosing 1 out of 4 16-bit
+  blocks, then subdividing the remaining 48 bits into 4 12-bit blocks and
+  choosing one of them, as described in Manku et al 3.1.1.
 
 ## Existing Libraries and Implementations
 
 These don't necessarily implement the schemes above, but they do implement the
 basic algorithms.
 
-- [seomoz/simhash-cpp](https://github.com/seomoz/simhash-cpp) (C++): simhash,
-  used in production for web de-dupe
-- [simhash](https://github.com/JanX2/simhash) (C++): Google's simhash
+- [seomoz/simhash-cpp](https://github.com/seomoz/simhash-cpp) (C++) and
+  [seomoz/simhash-py](https://github.com/seomoz/simhash-py) (python, wrapping
+  the C++ library): simhash, used in production for web de-duplication
+- [simhash](https://github.com/JanX2/simhash) (C++): mirror of Google's simhash
   implementation (old?)
 - [datasketch](https://ekzhu.github.io/datasketch/) (Python): minhash, Jaccard
   similarity, minhash-based indexing with Jaccard threshold, Top-K, or
@@ -165,6 +171,8 @@ Other resources:
 "Charikar: Similarity Estimation Techniques from Rounding Algorithms", in
 Proceedings of the thiry-fourth annual ACM symposium on Theory of computing,
 ACM Press, 2002"
+
+> The original simhash paper
 
 "Manku, Jain, Sarma: Detecting Near-Duplicates for Web Crawling". in
 Proceedings of the 16th international conference on World Wide Web, ACM Press,
