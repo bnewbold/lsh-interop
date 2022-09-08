@@ -160,6 +160,8 @@ Other resources:
   plugin for a general-purpose search engine
 - [bbalet/stopwords](https://github.com/bbalet/stopwords) (Golang): for a
   dozen+ languages. also does HTML stripping
+- [soundcloud/cosine-lsh-jo](https://github.com/soundcloud/cosine-lsh-jo)
+  (Spark): nearest-neighbor clustering
 
 ## References
 
